@@ -1,1 +1,88 @@
+import os
+import random
+import time
+from msvcrt import getch
+
+# Constants
+WIDTH, HEIGHT = 10, 20
+EMPTY = ' '
+BLOCK = '#'
+
+# Tetromino shapes
+SHAPES = [
+    [[1, 1, 1, 1]],
+    [[1, 1, 1, 0], [1]],
+    [[1, 1, 1, 0], [0, 0, 1]],
+    [[1, 1, 0, 0], [0, 1, 1]],
+    [[0, 1, 1, 0], [1, 1]],
+    [[1, 1, 1, 0], [1, 0, 0]],
+    [[1, 1, 1, 0], [0, 1]],
+]
+
+# Function to print the game board
+def print_board(board):
+    os.system('cls' if os.name == 'nt' else 'clear')
+    for row in board:
+        print(' '.join(row))
+    print('-' * (WIDTH * 2 + 1))
+
+# Function to check if a move is valid
+def is_valid_move(board, shape, row, col):
+    for i in range(len(shape)):
+        for j in range(len(shape[i])):
+            if shape[i][j] == 1:
+                if row + i >= HEIGHT or col + j < 0 or col + j >= WIDTH or board[row + i][col + j] != EMPTY:
+                    return False
+    return True
+
+# Function to place a tetromino on the board
+def place_tetromino(board, shape, row, col):
+    for i in range(len(shape)):
+        for j in range(len(shape[i])):
+            if shape[i][j] == 1:
+                board[row + i][col + j] = BLOCK
+
+# Function to remove completed lines
+def remove_lines(board):
+    full_lines = [i for i, row in enumerate(board) if all(cell == BLOCK for cell in row)]
+    for line in full_lines:
+        del board[line]
+        board.insert(0, [EMPTY] * WIDTH)
+
+# Function to run the Tetris game
+def play_tetris():
+    board = [[EMPTY] * WIDTH for _ in range(HEIGHT)]
+    current_shape = random.choice(SHAPES)
+    current_row, current_col = 0, WIDTH // 2 - len(current_shape[0]) // 2
+    game_over = False
+
+    while not game_over:
+        print_board(board)
+        print(f"Press 'a' to move left, 'd' to move right, 's' to move down, and 'q' to quit.")
+
+        key = getch().decode('utf-8')
+
+        if key == 'a':
+            if is_valid_move(board, current_shape, current_row, current_col - 1):
+                current_col -= 1
+        elif key == 'd':
+            if is_valid_move(board, current_shape, current_row, current_col + 1):
+                current_col += 1
+        elif key == 's':
+            if is_valid_move(board, current_shape, current_row + 1, current_col):
+                current_row += 1
+            else:
+                place_tetromino(board, current_shape, current_row, current_col)
+                remove_lines(board)
+                current_shape = random.choice(SHAPES)
+                current_row, current_col = 0, WIDTH // 2 - len(current_shape[0]) // 2
+                if not is_valid_move(board, current_shape, current_row, current_col):
+                    game_over = True
+        elif key == 'q':
+            game_over = True
+
+    print("Game over!")
+
+# Run the game
+play_tetris()
 
